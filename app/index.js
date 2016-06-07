@@ -4,7 +4,7 @@ var ReactDOM=require('react-dom');
 var TodoContainer = React.createClass({
   getInitialState : function(){
     return{
-      list : ['TODO #1','TODO #2','TODO #3']
+      list : ['TODO #1','TODO #2'],
     }
   },
   addItem: function(item){
@@ -14,8 +14,8 @@ var TodoContainer = React.createClass({
   },
   render : function(){
     return(
-      <div>
-        <h3> TODO LIST :</h3>
+      <div className="jumbotron col-sm-6 col-sm-offset-3 text-center">
+        <h3> TODO LIST</h3>
         <AddItem addItem={this.addItem} />
         <ShowList items={this.state.list} />
       </div>
@@ -30,7 +30,7 @@ var AddItem = React.createClass({
     }
   },
   handleChange : function(e){
-    e.preventDefault();
+    // e.preventDefault();
     this.setState({
       newItem: e.target.value
     });
@@ -53,11 +53,12 @@ var AddItem = React.createClass({
 var ShowList = React.createClass({
   render : function(){
     var listItems = this.props.items.map(function(item){
-      return <li> {item} </li>;
+      //return <li> {item} </li>;
+      return <li > <input type="checkbox"> {item}</input></li>;
     });
     return(
-      <div>
-        <ul> {listItems} </ul>
+      <div className="text-left col-sm-6 col-sm-offset-2">
+        <ul > {listItems} </ul>
       </div>
     )
   }
