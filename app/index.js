@@ -4,12 +4,21 @@ var ReactDOM=require('react-dom');
 var TodoContainer = React.createClass({
   getInitialState : function(){
     return{
-      list : ['TODO #1','TODO #2'],
+      list : [],
+      // counter:0,
+      // buttonValue:0,
     }
   },
   addItem: function(item){
     this.setState({
-      list : this.state.list.concat([item])
+      list : this.state.list.concat([item]),
+      // counter:this.state.counter+1,
+      // buttonValue : this.state.counter
+    });
+  },
+  removeItem : function(index){
+    this.setState({
+      list: this.state.list.splice(index)
     });
   },
   render : function(){
@@ -26,7 +35,7 @@ var TodoContainer = React.createClass({
 var AddItem = React.createClass({
   getInitialState: function(){
     return{
-      newItem:''
+      newItem:'',
     }
   },
   handleChange : function(e){
@@ -41,6 +50,12 @@ var AddItem = React.createClass({
       newItem:''
     });
   },
+  handleRemoveItem: function(){
+    this.props.removeItem(this.state.index);
+    this.setState({
+      index:this.state.index
+    });
+  },
   render: function(){
     return (
       <div>
@@ -53,8 +68,10 @@ var AddItem = React.createClass({
 var ShowList = React.createClass({
   render : function(){
     var listItems = this.props.items.map(function(item){
-      //return <li> {item} </li>;
-      return <li > <input type="checkbox"> {item}</input></li>;
+      return <li>
+                <input type="checkbox"> {item}</input>
+                <button className="btn btn-danger btn-xs"  onClick={this.handleRemoveItem}>x</button>
+             </li>;
     });
     return(
       <div className="text-left col-sm-6 col-sm-offset-2">
