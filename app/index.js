@@ -5,11 +5,8 @@ var ws = new WebSocket('ws://127.0.0.1:8008/ws');
 var TodoBox = React.createClass({
 	getInitialState: function () {
 		return {
-			data: []
+			data: this.props.todos
 		};
-	},
-	handleData: function(data){
-		this.setState({data});
 	},
 	generateId: function () {
 		return Math.floor(Math.random()*90000) + 10000;
@@ -21,6 +18,7 @@ var TodoBox = React.createClass({
 		});
 		this.setState({data});
 		var sendToWs=JSON.stringify(data);
+		localStorage.setItem('todos', JSON.stringify(data));
 		ws.send(sendToWs);
 		return;
 	},
@@ -30,6 +28,7 @@ var TodoBox = React.createClass({
 		var complete = 'false';
 		data = data.concat([{id, task, complete}]);
 		this.setState({data});
+		localStorage.setItem('todos', JSON.stringify(data));
 		var sendToWs=JSON.stringify(data);
 		ws.send(sendToWs);
 	},
@@ -42,6 +41,7 @@ var TodoBox = React.createClass({
 			}
 		}
 		this.setState({data});
+		localStorage.setItem('todos', JSON.stringify(data));
 		var sendToWs=JSON.stringify(data);
 		ws.send(sendToWs);
 		return;
@@ -158,8 +158,8 @@ var TodoForm = React.createClass({
 		);
 	}
 });
-
+var todos = JSON.parse(localStorage.getItem('todos')) || [];
 ReactDOM.render(
-	<TodoBox />,
+	<TodoBox todos={todos}/>,
 	document.getElementById('app')
 );
