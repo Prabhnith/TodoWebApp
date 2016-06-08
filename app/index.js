@@ -1,11 +1,15 @@
 var React = require('react')
 var ReactDOM = require('react-dom')
+var ws = new WebSocket('ws://127.0.0.1:8008/ws');
 
 var TodoBox = React.createClass({
 	getInitialState: function () {
 		return {
 			data: []
 		};
+	},
+	handleData: function(data){
+		this.setState({data});
 	},
 	generateId: function () {
 		return Math.floor(Math.random()*90000) + 10000;
@@ -16,6 +20,8 @@ var TodoBox = React.createClass({
 			return element.id !== nodeId;
 		});
 		this.setState({data});
+		var sendToWs=JSON.stringify(data);
+		ws.send(sendToWs);
 		return;
 	},
   	handleSubmit: function (task) {
@@ -24,6 +30,8 @@ var TodoBox = React.createClass({
 		var complete = 'false';
 		data = data.concat([{id, task, complete}]);
 		this.setState({data});
+		var sendToWs=JSON.stringify(data);
+		ws.send(sendToWs);
 	},
 	handleToggleComplete: function (nodeId) {
 		var data = this.state.data;
@@ -34,6 +42,8 @@ var TodoBox = React.createClass({
 			}
 		}
 		this.setState({data});
+		var sendToWs=JSON.stringify(data);
+		ws.send(sendToWs);
 		return;
 	},
 	render: function() {
@@ -44,7 +54,6 @@ var TodoBox = React.createClass({
         <TodoList data={this.state.data}
                   removeNode={this.handleNodeRemoval}
                   toggleComplete={this.handleToggleComplete} />
-
 			</div>
 		);
 	}
