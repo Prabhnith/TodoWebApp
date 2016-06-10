@@ -1,6 +1,34 @@
 var React = require('react')
 var ReactDOM = require('react-dom')
-var ws = new WebSocket('ws://127.0.0.1:8008/ws');
+var uuid = require('uuid');
+ws = new WebSocket('ws://192.168.1.117:3000/v5/ws');
+// var ws = new WebSocket('ws://localhost:8008/ws');
+
+setupWsHandle(ws);
+function setupWsHandle(ws){
+	console.log("Trying..");
+	ws.onopen = () => {
+			console.log("connection established");
+			var sendToWs=JSON.stringify(todos);
+			ws.send(sendToWs);
+			console.log("data send intially");
+	};
+	ws.onmessage = (e) => {
+	console.log("This is the received data " );
+	console.log( e.data);
+ };
+	ws.onmessage = (e) => {
+			console.log(e.data);
+	};
+	ws.onclose = (e) => {
+			console.log(e.code, e.reason);
+			console.log("connection dropped but changes will be saved to local storage");
+			console.log("Retrying connection...");
+			var wss = new WebSocket('ws://192.168.1.117:3000/v5/ws');
+			// var wss = new WebSocket('ws://localhost:8008/ws');
+			setupWsHandle(wss);
+		}
+};
 
 var TodoBox = React.createClass({
 	getInitialState: function () {
@@ -8,41 +36,64 @@ var TodoBox = React.createClass({
 			data: this.props.todos
 		};
 	},
+	//receive data from the url
+	// loadTodosFromServer: function() {}
+	// componentDidMount: function(){
+	// 	this.loadTodosFromServer();
+	// 	setInterval(this.loadTodosFromServer, this.props.refreshInterval)
+	// },
+
 	generateId: function () {
-		return Math.floor(Math.random()*90000) + 10000;
+		return uuid.v4();
 	},
+
 	handleNodeRemoval: function (nodeId) {
 		var data = this.state.data;
+		var elementToSend = data.filter(function (element) {
+			return element.id === nodeId;
+		});
+
+		elementToSend[0]["status"]="delete";
+		var sendToWs=JSON.stringify(elementToSend);
+		ws.send(sendToWs);
+
 		data = data.filter(function (element) {
 			return element.id !== nodeId;
 		});
+
 		this.setState({data});
-		var sendToWs=JSON.stringify(data);
 		localStorage.setItem('todos', JSON.stringify(data));
-		ws.send(sendToWs);
 		return;
 	},
   	handleSubmit: function (task) {
 		var data = this.state.data;
-		var id = this.generateId().toString();
-		var complete = 'false';
-		data = data.concat([{id, task, complete}]);
+		var id = this.generateId();
+		var complete = false;
+		var status = "insert"
+
+		elementToSend = [{id, task, complete,status}];
+		var sendToWs=JSON.stringify(elementToSend);
+		ws.send(sendToWs);
+
+		data = data.concat([{id, task, complete,status}]);
 		this.setState({data});
 		localStorage.setItem('todos', JSON.stringify(data));
-		var sendToWs=JSON.stringify(data);
-		ws.send(sendToWs);
 	},
 	handleToggleComplete: function (nodeId) {
 		var data = this.state.data;
+		var position;
 		for (var i in data) {
 			if (data[i].id == nodeId) {
-				data[i].complete = data[i].complete === 'true' ? 'false' : 'true';
+				data[i].complete = data[i].complete === true ? false : true;
+				position=i;
 				break;
 			}
 		}
+		data[position]["status"]="update";
 		this.setState({data});
 		localStorage.setItem('todos', JSON.stringify(data));
-		var sendToWs=JSON.stringify(data);
+		var elementToSend = data[position];
+		var sendToWs=JSON.stringify(elementToSend);
 		ws.send(sendToWs);
 		return;
 	},
@@ -108,7 +159,6 @@ var TodoItem = React.createClass({
 		}
 		return (
 			<li className={classes}>
-      {/*<input  type="checkbox" click={this.handleToggleComplete}></input>*/}
       <button type="button"
             className="btn btn-xs btn-success img-circle"
             onClick={this.toggleComplete}>&#x2713;
@@ -144,7 +194,6 @@ var TodoForm = React.createClass({
 				<div className="clearfix">
 					<form className="todoForm form-horizontal" onSubmit={this.doSubmit}>
 						<div className="form-group ">
-							{/*<label htmlFor="task" className="col-md-2 control-label">Task</label>*/}
 							<div className="col-md-10 ">
 								<input  type="text" id="task" ref="task"
                         ///*className="form-control"*/
@@ -158,8 +207,11 @@ var TodoForm = React.createClass({
 		);
 	}
 });
-var todos = JSON.parse(localStorage.getItem('todos')) || [];
+//if you want to fetch todos from the server itself
+//and add the refresh interval :use::
+//use <TodoBox url="/api/todos" refreshInterval={2000} />
+todos = JSON.parse(localStorage.getItem('todos')) || [];
 ReactDOM.render(
-	<TodoBox todos={todos}/>,
+	<TodoBox todos={todos} />,
 	document.getElementById('app')
 );

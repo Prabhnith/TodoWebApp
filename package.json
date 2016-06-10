@@ -18,7 +18,8 @@
     "react-websocket": "~1.0.0",
     "websocket": "~1.0.23",
     "socket.io": "~1.4.6",
-    "net": "~1.0.2"
+    "net": "~1.0.2",
+    "uuid": "~2.0.2"
   },
   "devDependencies": {
     "babel-core": "^6.4.5",
