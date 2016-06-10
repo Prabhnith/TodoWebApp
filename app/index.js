@@ -154,7 +154,7 @@ var TodoItem = React.createClass({
 	},
 	render: function() {
 		var classes = 'list-group-item clearfix';
-		if (this.props.complete === 'true') {
+		if (this.props.complete === true) {
 			classes = classes + ' list-group-item-success';
 		}
 		return (
