@@ -1,21 +1,36 @@
 var React = require('react')
 var ReactDOM = require('react-dom')
 var uuid = require('uuid');
-pendingData = [];
+pendingInsertData = [];
+pendingDeleteData = [];
+pendingUpdateData = [];
 // ws = new WebSocket('ws://192.168.1.117:3000/v5/ws');
 // ws = new WebSocket('ws://127.0.0.1:8008/ws');
-wsocks = {connection: new WebSocket('ws://127.0.0.1:8008/ws') }
+// wsocks = {connection: new WebSocket('ws://127.0.0.1:8008/ws') }
+wsocks = {connection: new WebSocket('ws://192.168.1.117:3000/v5/ws') }
 setupWsHandle();
+function sendPendingData(data, status ){
+		console.log("data.length is");
+		console.log(data.length);
+		if (data.length == 0){
+			return;
+		}
+		var messageToSend = { "messageData" : data , "messageLabel": status }
+		var sendToWs=JSON.stringify(messageToSend);
+		wsocks.connection.send(sendToWs);
+		data = [];
+};
 function setupWsHandle(){
 	console.log("Trying..");
 	// ws = new WebSocket('ws://127.0.0.1:8008/ws');
 	wsocks.connection.onopen = () => {
 			console.log("connection established");
 			console.log(wsocks.connection.readyState);
-			var sendToWs=JSON.stringify(pendingData);
-			wsocks.connection.send(sendToWs);
-			pendingData=[];
+			sendPendingData(pendingInsertData,"insert");
+			sendPendingData(pendingUpdateData,"update");
+			sendPendingData(pendingDeleteData,"delete");
 	};
+
 	wsocks.connection.onmessage = (e) => {
 	console.log("This is the received data " );
 	console.log( e.data);
@@ -29,7 +44,8 @@ function setupWsHandle(){
 			console.log("Retrying connection...");
 			console.log(wsocks.connection.readyState);
 			try {
-			    wsocks.connection = new WebSocket('ws://127.0.0.1:8008/ws');
+			    wsocks.connection = new WebSocket('ws://192.168.1.117:3000/v5/ws');
+			    // wsocks.connection = new WebSocket('ws://127.0.0.1:8008/ws');
 			}
 			catch(err) {
 			    console.log("connection can't be established");
@@ -54,14 +70,14 @@ var TodoBox = React.createClass({
 		var elementToSend = data.filter(function (element) {
 			return element.id === nodeId;
 		});
-		elementToSend[0]["status"]="delete";
-
+		// elementToSend[0]["status"]="delete";
+		var messageToSend = { "messageData" : elementToSend , "messageLabel":"delete" }
 		try {
-			var sendToWs=JSON.stringify(elementToSend);
+			var sendToWs=JSON.stringify(messageToSend);
 			wsocks.connection.send(sendToWs);
 		}
 		catch(err) {
-		    pendingData = pendingData.concat(elementToSend);
+		    pendingDeleteData = pendingDeleteData.concat(elementToSend);
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
@@ -75,27 +91,28 @@ var TodoBox = React.createClass({
 		localStorage.setItem('todos', JSON.stringify(data));
 		return;
 	},
-  	handleSubmit: function (task) {
+  	handleSubmit: function (content) {
 		var data = this.state.data;
 		var id = this.generateId();
 		var complete = false;
-		var status = "insert"
+		var content = content;
+		// var status = "insert"
 
-		elementToSend = [{id, task, complete,status}];
-		
+		elementToSend = [{id, content, complete}];
+		var messageToSend = { "messageData" : elementToSend , "messageLabel":"insert" }
 		try {
-			var sendToWs=JSON.stringify(elementToSend);
+			var sendToWs=JSON.stringify(messageToSend);
 			wsocks.connection.send(sendToWs);
 		}
 		catch(err) {
-		    pendingData = pendingData.concat(elementToSend);
+		    pendingInsertData = pendingInsertData.concat(elementToSend);
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
 				// var sendToWs=JSON.stringify(elementToSend);
 		// wsocks.connection.send(sendToWs);
 
-		data = data.concat([{id, task, complete,status}]);
+		data = data.concat([{id, content, complete}]);
 		this.setState({data});
 		localStorage.setItem('todos', JSON.stringify(data));
 	},
@@ -109,16 +126,20 @@ var TodoBox = React.createClass({
 				break;
 			}
 		}
-		data[position]["status"]="update";
+		// data[position]["status"]="update";
+
 		this.setState({data});
 		localStorage.setItem('todos', JSON.stringify(data));
-		var elementToSend = data[position];
+		var elementToSend = [];
+		elementToSend.push(data[position]);
+		var messageToSend = { "messageData" : elementToSend , "messageLabel":"update" }
+		console.log(messageToSend);
 		try {
-			var sendToWs=JSON.stringify(elementToSend);
+			var sendToWs=JSON.stringify(messageToSend);
 			wsocks.connection.send(sendToWs);
 		}
 		catch(err) {
-				pendingData = pendingData.concat(elementToSend);
+				pendingUpdateData = pendingUpdateData.concat(elementToSend);
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
@@ -155,7 +176,7 @@ var TodoList = React.createClass({
 			return (
 				<TodoItem key={listItem.id}
         nodeId={listItem.id}
-        task={listItem.task}
+        content={listItem.content}
         complete={listItem.complete}
         removeNode={this.removeNode}
         toggleComplete={this.toggleComplete} />
@@ -194,7 +215,7 @@ var TodoItem = React.createClass({
             className="btn btn-xs btn-success img-circle"
             onClick={this.toggleComplete}>&#x2713;
       </button>{"  "}
-      {this.props.task}
+      {this.props.content}
 				<div className="pull-right" role="group">
           <button
                 type="button"
@@ -210,12 +231,12 @@ var TodoItem = React.createClass({
 var TodoForm = React.createClass({
 	doSubmit: function (e) {
 		e.preventDefault();
-		var task = ReactDOM.findDOMNode(this.refs.task).value.trim();
-		if (!task) {
+		var content = ReactDOM.findDOMNode(this.refs.content).value.trim();
+		if (!content) {
 			return;
 		}
-		this.props.onTaskSubmit(task);
-		ReactDOM.findDOMNode(this.refs.task).value = '';
+		this.props.onTaskSubmit(content);
+		ReactDOM.findDOMNode(this.refs.content).value = '';
 		return;
 	},
 	render: function() {
@@ -226,7 +247,7 @@ var TodoForm = React.createClass({
 					<form className="todoForm form-horizontal" onSubmit={this.doSubmit}>
 						<div className="form-group ">
 							<div className="col-md-10 ">
-								<input  type="text" id="task" ref="task"
+								<input  type="text" id="content" ref="content"
                         ///*className="form-control"*/
                         placeholder="Add TODO..." />
                 <input type="submit" value="+" className="btn btn-primary btn-sm" />
