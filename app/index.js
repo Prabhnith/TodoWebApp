@@ -4,8 +4,6 @@ var uuid = require('uuid');
 pendingInsertData = [];
 pendingDeleteData = [];
 pendingUpdateData = [];
-// ws = new WebSocket('ws://192.168.1.117:3000/v5/ws');
-// ws = new WebSocket('ws://127.0.0.1:8008/ws');
 // wsocks = {connection: new WebSocket('ws://127.0.0.1:8008/ws') }
 wsocks = {connection: new WebSocket('ws://192.168.1.117:3000/v5/ws') }
 setupWsHandle();
@@ -22,7 +20,6 @@ function sendPendingData(data, status ){
 };
 function setupWsHandle(){
 	console.log("Trying..");
-	// ws = new WebSocket('ws://127.0.0.1:8008/ws');
 	wsocks.connection.onopen = () => {
 			console.log("connection established");
 			console.log(wsocks.connection.readyState);
@@ -32,8 +29,8 @@ function setupWsHandle(){
 	};
 
 	wsocks.connection.onmessage = (e) => {
-	console.log("This is the received data " );
-	console.log( e.data);
+			console.log("This is the received data " );
+			console.log( e.data);
  };
 	wsocks.connection.onmessage = (e) => {
 			console.log(e.data);
@@ -59,18 +56,14 @@ var TodoBox = React.createClass({
 			data: this.props.todos
 		};
 	},
-
 	generateId: function () {
 		return uuid.v4();
 	},
-
-
 	handleNodeRemoval: function (nodeId) {
 		var data = this.state.data;
 		var elementToSend = data.filter(function (element) {
 			return element.id === nodeId;
 		});
-		// elementToSend[0]["status"]="delete";
 		var messageToSend = { "messageData" : elementToSend , "messageLabel":"delete" }
 		try {
 			var sendToWs=JSON.stringify(messageToSend);
@@ -81,7 +74,6 @@ var TodoBox = React.createClass({
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
-
 		data = data.filter(function (element) {
 			return element.id !== nodeId;
 		}
@@ -95,22 +87,18 @@ var TodoBox = React.createClass({
 		var data = this.state.data;
 		var id = this.generateId();
 		var complete = false;
-		var content = content;
-		// var status = "insert"
 
 		elementToSend = [{id, content, complete}];
 		var messageToSend = { "messageData" : elementToSend , "messageLabel":"insert" }
 		try {
-			var sendToWs=JSON.stringify(messageToSend);
-			wsocks.connection.send(sendToWs);
+				var sendToWs=JSON.stringify(messageToSend);
+				wsocks.connection.send(sendToWs);
 		}
 		catch(err) {
 		    pendingInsertData = pendingInsertData.concat(elementToSend);
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
-				// var sendToWs=JSON.stringify(elementToSend);
-		// wsocks.connection.send(sendToWs);
 
 		data = data.concat([{id, content, complete}]);
 		this.setState({data});
@@ -126,27 +114,22 @@ var TodoBox = React.createClass({
 				break;
 			}
 		}
-		// data[position]["status"]="update";
-
 		this.setState({data});
 		localStorage.setItem('todos', JSON.stringify(data));
 		var elementToSend = [];
 		elementToSend.push(data[position]);
+
 		var messageToSend = { "messageData" : elementToSend , "messageLabel":"update" }
 		console.log(messageToSend);
 		try {
-			var sendToWs=JSON.stringify(messageToSend);
-			wsocks.connection.send(sendToWs);
+				var sendToWs=JSON.stringify(messageToSend);
+				wsocks.connection.send(sendToWs);
 		}
 		catch(err) {
 				pendingUpdateData = pendingUpdateData.concat(elementToSend);
 				console.log(wsocks.connection.readyState);
 				console.log(err);
 		}
-
-
-		// var sendToWs=JSON.stringify(elementToSend);
-		// wsocks.connection.send(sendToWs);
 		return;
 	},
 	render: function() {
@@ -248,7 +231,6 @@ var TodoForm = React.createClass({
 						<div className="form-group ">
 							<div className="col-md-10 ">
 								<input  type="text" id="content" ref="content"
-                        ///*className="form-control"*/
                         placeholder="Add TODO..." />
                 <input type="submit" value="+" className="btn btn-primary btn-sm" />
               </div>
@@ -259,9 +241,6 @@ var TodoForm = React.createClass({
 		);
 	}
 });
-//if you want to fetch todos from the server itself
-//and add the refresh interval :use::
-//use <TodoBox url="/api/todos" refreshInterval={2000} />
 todos = JSON.parse(localStorage.getItem('todos')) || [];
 ReactDOM.render(
 	<TodoBox todos={todos} />,
