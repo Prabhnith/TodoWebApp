@@ -3,6 +3,13 @@ A Simple TODO web app made in React with the localstorage and database backup fe
 
 ##QuickStart
 
+###Requirements
+* 1. [Golang](https://golang.org/)
+* 2. [Install Go](https://golang.org/doc/install)
+* 3. [Postgres](https://www.postgresql.org/download/)
+* 4. [React js](https://facebook.github.io/react/)
+* 5. [python3](https://www.python.org/downloads/) 
+
 ###To install the TODO app:
 * 1. git clone https://github.com/Prabhnith/TodoWebApp.git
 * 2. cd TodoWebApp
