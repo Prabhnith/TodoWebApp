@@ -30,11 +30,12 @@ function setupWsHandle(){
 
 	wsocks.connection.onmessage = (e) => {
 			console.log("This is the received data " );
+			todos = JSON.parse(e.data);
+			// todos = JSON.parse(localStorage.getItem('todos')) || [];
+			console.log( "todos : %s", todos);
 			console.log( e.data);
+
  };
-	wsocks.connection.onmessage = (e) => {
-			console.log(e.data);
-	};
 	wsocks.connection.onclose = (e) => {
 			console.log(e.code, e.reason);
 			console.log("connection dropped but changes will be saved to local storage");
@@ -241,7 +242,9 @@ var TodoForm = React.createClass({
 		);
 	}
 });
-todos = JSON.parse(localStorage.getItem('todos')) || [];
+if (wsocks.connection.readyState != 1){
+		todos = JSON.parse(localStorage.getItem('todos')) || [];
+}
 ReactDOM.render(
 	<TodoBox todos={todos} />,
 	document.getElementById('app')
