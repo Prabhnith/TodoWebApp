@@ -62,10 +62,10 @@ var upgrader = websocket.Upgrader{
 func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
+		http.ServeFile(w, r, "indexserver.html")
 	})
 
-	http.HandleFunc("/v5/ws", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		var conn, errors = upgrader.Upgrade(w, r, nil)
 		if errors != nil {
 			fmt.Println(errors)
@@ -152,7 +152,7 @@ func main() {
                             fmt.Println("Insert error : ", err)
 
     						commitErr := tx.Commit()
-    						fmt.Println("Insert commit : ", commitErr)
+    						// fmt.Println("Insert commit : ", commitErr)
 	    					if commitErr != nil {
 		    					tx.Rollback()
 			    				var resp2 Response
@@ -181,7 +181,7 @@ func main() {
 					    	fmt.Println("Delete : ", err)
 
 						    commitErr := tx.Commit()
-    						fmt.Println("Delete commit :  ", commitErr)
+    						// fmt.Println("Delete commit :  ", commitErr)
 	    					if commitErr != nil {
 		    					tx.Rollback()
 			    				var resp1 Response
@@ -211,7 +211,7 @@ func main() {
 					    	fmt.Println("Update : ", err)
 
 						    commitErr := tx.Commit()
-    						fmt.Println("Update commit :  ", commitErr)
+    						// fmt.Println("Update commit :  ", commitErr)
 	    					if commitErr != nil {
 		    					tx.Rollback()
 			    				var respu Response
@@ -235,7 +235,7 @@ func main() {
 					response.Process = operation + " Success"
 					response_json, _ := json.Marshal(response)
 					// fmt.Println(json_err)
-					fmt.Println(string(response_json))
+					// fmt.Println(string(response_json))
 					conn.WriteMessage(1, response_json)
 			}
 		}(conn)
